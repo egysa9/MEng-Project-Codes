@@ -13,12 +13,6 @@ normals_file = r"C:\Users\sarah\Documents\MEng Project Systema\Models\Cube Box_C
 TARGET_NODE_START = 100001
 TARGET_NODE_END = 100040
 
-print("="*70)
-print("CUBE BOX OUTGASSING THRUST CALCULATION")
-print(f"Using nodes {TARGET_NODE_START}-{TARGET_NODE_END}")
-print("="*70)
-
-print("\nStep 1: Reading surface normals from .nod.nwk file...")
 all_normals = []
 
 with open(normals_file, 'r') as nf:
@@ -44,7 +38,6 @@ with open(normals_file, 'r') as nf:
                     all_normals.append([node_id, nx, ny, nz])
 
 all_normals = sorted(all_normals, key=lambda x: x[0])
-print(f"  Total normals loaded: {len(all_normals)}")
 print(f"  Node ID range: {all_normals[0][0]} to {all_normals[-1][0]}")
 
 target_indices = []
@@ -55,18 +48,10 @@ for idx, normal in enumerate(all_normals):
         target_indices.append(idx)
         target_normals.append(normal)
 
-print(f"  Found {len(target_indices)} nodes in range {TARGET_NODE_START}-{TARGET_NODE_END}")
-if len(target_indices) > 0:
-    print(f"  Indices in file: {target_indices[0]} to {target_indices[-1]}")
-    print(f"  Node IDs: {target_normals[0][0]} to {target_normals[-1][0]}")
-else:
-    print("  ERROR: No nodes found in target range!")
-    exit(1)
 
 normals_array = np.array([n[1:] for n in target_normals]) 
 node_ids = np.array([n[0] for n in target_normals])  
 
-print("\nStep 2: Reading HDF5 data for target nodes...")
 with h5py.File(hdf5_file, 'r') as f:
     emittable_mass_all = f['/Results/Outgassing/Emittable mass'][target_indices, :, :]  
     emittable_mass_density_all = f['/Results/Outgassing/Emittable mass density'][target_indices, :, :]  
@@ -89,7 +74,6 @@ n_timesteps = emittable_mass.shape[1] if len(emittable_mass.shape) > 1 else 1
 print(f"  Number of nodes: {n_nodes}")
 print(f"  Number of timesteps: {n_timesteps}")
 
-print("\nStep 3: Calculating thrust parameters (using final timestep)...")
 
 final_timestep_idx = -1
 
@@ -109,12 +93,12 @@ if n_timesteps > 1:
 
     delta_m = np.zeros(n_nodes)
 
-m_dot = delta_m / dt  # [kg/s]
+m_dot = delta_m / dt 
 
 
-v_exhaust = np.sqrt(8 * k_B * T_final / (np.pi * m_molecular))  # [m/s]
+v_exhaust = np.sqrt(8 * k_B * T_final / (np.pi * m_molecular)) 
 
-F_element = m_dot * v_exhaust  # [N]
+F_element = m_dot * v_exhaust 
 
 F_net = np.zeros(3)
 for i in range(n_nodes):
